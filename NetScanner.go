@@ -14,6 +14,23 @@ const (
 	seconds time.Duration = 10 // Timeout duration for TCP connection
 )
 
+// Function for testing TCP connection to a given IP address and port
+func testTCPConnection(ip string, port int, doneChannel chan bool) {
+	// Try to establish TCP connection to given IP address and port with a timeout
+	_, err := net.DialTimeout(
+		"tcp",
+		ip+":"+strconv.Itoa(port),
+		time.Second*seconds,
+	)
+
+	// If connection is successful, print message indicating that the port is open
+	if err == nil {
+		fmt.Printf("Port %d: Open\n", port)
+	}
+
+	doneChannel <- true // Signal that goroutine is done by writing to channel
+}
+
 func main() {
 	// Check if the number of command line arguments is correct
 	if len(os.Args) != args {
@@ -40,21 +57,4 @@ func main() {
 		<-doneChannel   // Read from channel to wait for a goroutine to finish
 		activeThreads-- // Decrement counter for active threads
 	}
-}
-
-// Function for testing TCP connection to a given IP address and port
-func testTCPConnection(ip string, port int, doneChannel chan bool) {
-	// Try to establish TCP connection to given IP address and port with a timeout
-	_, err := net.DialTimeout(
-		"tcp",
-		ip+":"+strconv.Itoa(port),
-		time.Second*seconds,
-	)
-
-	// If connection is successful, print message indicating that the port is open
-	if err == nil {
-		fmt.Printf("Port %d: Open\n", port)
-	}
-
-	doneChannel <- true // Signal that goroutine is done by writing to channel
 }
